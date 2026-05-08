@@ -33,7 +33,7 @@ This project is a simple Snake Game built using Flask for the backend and JavaSc
     - Launch Jenkins Server:
 
         ```bash
-        docker run -p 8080:8080 -p 50000:50000 -dit --name jenkins --restart=on-failure -v jenkins_home:/var/jenkins_home jenkins/jenkins:lts-jdk17
+        docker run -p 8080:8080 -p 50000:50000 -dit --name jenkins --restart=on-failure -v jenkins_home:/var/jenkins_home jenkins/jenkins:lts-jdk21
         ```
     
     -  Configure Jenkins Slave Node:
@@ -41,8 +41,8 @@ This project is a simple Snake Game built using Flask for the backend and JavaSc
         - On your Jenkins slave node, install JDK 17(You can make your base Ec2 Instance as slave node):
         
             ```bash
-            wget https://download.oracle.com/java/17/archive/jdk-17.0.10_linux-x64_bin.rpm
-            yum install jdk-17.0.10_linux-x64_bin.rpm -y
+            wget https://download.oracle.com/java/21/latest/jdk-21_linux-x64_bin.rpm
+            yum install jdk-21_linux-x64_bin.rpm -y
             ```
 
         - Start the agent and join it to the Jenkins Master Node using the provided join command.
