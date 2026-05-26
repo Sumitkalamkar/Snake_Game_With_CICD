@@ -12,7 +12,7 @@ pipeline {
         stage('Download the source code') {
             steps {
                 git branch: 'main',
-                url: 'https://github.com/YOUR_USERNAME/SnakeGame.git'
+                url: 'https://github.com/Sumitkalamkar/SnakeGame.git'
 
                 echo "Code downloaded successfully"
             }
