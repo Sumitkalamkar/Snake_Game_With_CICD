@@ -165,14 +165,6 @@ stage("Deployment") {
 
 ---
 
-## Docker Image
-
-A pre-built Docker image is available on Docker Hub:
-
-[https://hub.docker.com/r/jinny1/snakegame](https://hub.docker.com/r/jinny1/snakegame)
-
----
-
 ## Contact
 
 For any inquiries or issues, feel free to reach out:
