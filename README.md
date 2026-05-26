@@ -12,9 +12,15 @@ A simple Snake Game built using **Flask** for the backend and **JavaScript** for
 ![Architecture Diagram](ArchitectureDiagram.png)
 
 ### Web App Preview
-![Snake Game WebUI](webapp.png)
-
+![Snake Game WebUI](Game_ui)
 ---
+![Snake Game WebUI](game_start)
+---
+![Snake Game WebUI](Replay_Buttion)
+---
+![Snake Game WebUI](Pipeline)
+---
+
 
 ## Table of Contents
 
