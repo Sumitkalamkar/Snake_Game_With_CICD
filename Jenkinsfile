@@ -2,28 +2,31 @@ pipeline {
 
     agent {
         docker {
-            image 'docker:27.0.3'
+            image 'python:3.11'
             args '-u root -v /var/run/docker.sock:/var/run/docker.sock'
         }
     }
 
     stages {
 
-        stage('Install Python') {
+        stage('Install Docker CLI') {
             steps {
-                sh 'apk add --no-cache python3 py3-pip py3-pytest'
+                sh '''
+                    apt update
+                    apt install -y docker.io
+                '''
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                sh 'pip install --break-system-packages -r requirements.txt'
+                sh 'pip install -r requirements.txt'
             }
         }
 
         stage('Test') {
             steps {
-                sh 'python3 -m pytest'
+                sh 'python -m pytest'
 
                 echo "Code has been tested successfully!"
             }
