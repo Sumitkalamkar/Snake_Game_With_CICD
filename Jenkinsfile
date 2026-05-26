@@ -9,24 +9,15 @@ pipeline {
 
     stages {
 
-        stage('Download the source code') {
-            steps {
-                git branch: 'main',
-                url: 'https://github.com/Sumitkalamkar/SnakeGame.git'
-
-                echo "Code downloaded successfully"
-            }
-        }
-
         stage('Install Dependencies') {
             steps {
-                sh 'pip install -r requirements.txt'
+                sh 'pip install --user -r requirements.txt'
             }
         }
 
         stage('Test') {
             steps {
-                sh 'pytest'
+                sh 'python -m pytest'
 
                 echo "Code has been tested successfully!"
             }
