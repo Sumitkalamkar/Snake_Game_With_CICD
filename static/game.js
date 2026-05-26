@@ -5,35 +5,92 @@ const canvasWidth = 500;
 const canvasHeight = 500;
 const numberOfCells = 25;
 const cellSize = Math.floor(canvasWidth / numberOfCells);
-const OFFSET = 0;
 
 const GREEN = 'rgb(173, 204, 96)';
 const DARK_GREEN = 'rgb(43, 51, 24)';
 
-let snake = [{ x: 6, y: 9 }, { x: 5, y: 9 }, { x: 4, y: 9 }];
-let direction = { x: 1, y: 0 };
-let food = generateRandomPos();
-let score = 0;
+let snake;
+let direction;
+let food;
+let score;
 let gameInterval;
+let gameStarted = false;
 
-// Load sounds
+// Sounds
 const eatSound = new Audio("/static/eat.mp3");
 const wallSound = new Audio("/static/wall.mp3");
 
-// Optional volume control
 eatSound.volume = 0.5;
 wallSound.volume = 0.5;
 
+// Create buttons
+const startBtn = document.createElement("button");
+startBtn.innerText = "Start Game";
+
+const replayBtn = document.createElement("button");
+replayBtn.innerText = "Replay";
+replayBtn.style.display = "none";
+
+document.body.appendChild(startBtn);
+document.body.appendChild(replayBtn);
+
+startBtn.onclick = startGame;
+replayBtn.onclick = restartGame;
+
+function initializeGame() {
+
+    snake = [
+        { x: 6, y: 9 },
+        { x: 5, y: 9 },
+        { x: 4, y: 9 }
+    ];
+
+    direction = { x: 1, y: 0 };
+
+    food = generateRandomPos();
+
+    score = 0;
+}
+
+function startGame() {
+
+    if (gameStarted) return;
+
+    gameStarted = true;
+
+    startBtn.style.display = "none";
+
+    initializeGame();
+
+    draw();
+
+    gameInterval = setInterval(update, 200);
+}
+
+function restartGame() {
+
+    clearInterval(gameInterval);
+
+    replayBtn.style.display = "none";
+
+    gameStarted = false;
+
+    startGame();
+}
+
 function draw() {
+
     ctx.fillStyle = GREEN;
+
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
     ctx.fillStyle = DARK_GREEN;
 
     snake.forEach(segment => {
+
         ctx.fillRect(
-            OFFSET + segment.x * cellSize,
-            OFFSET + segment.y * cellSize,
+            segment.x * cellSize,
+            segment.y * cellSize,
             cellSize,
             cellSize
         );
@@ -42,22 +99,22 @@ function draw() {
     ctx.fillStyle = 'red';
 
     ctx.fillRect(
-        OFFSET + food.x * cellSize,
-        OFFSET + food.y * cellSize,
+        food.x * cellSize,
+        food.y * cellSize,
         cellSize,
         cellSize
     );
 
     // Score background
     ctx.fillStyle = 'white';
-    ctx.fillRect(OFFSET - 10, 10, 180, 50);
+
+    ctx.fillRect(0, 0, 180, 50);
 
     ctx.fillStyle = DARK_GREEN;
-    ctx.font = '40px Arial';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
 
-    ctx.fillText(`Score: ${score}`, OFFSET, 20);
+    ctx.font = '40px Arial';
+
+    ctx.fillText(`Score: ${score}`, 10, 40);
 }
 
 function update() {
@@ -65,6 +122,7 @@ function update() {
     const head = { ...snake[0] };
 
     head.x += direction.x;
+
     head.y += direction.y;
 
     snake.unshift(head);
@@ -76,8 +134,8 @@ function update() {
 
         food = generateRandomPos();
 
-        // Restart sound before playing
         eatSound.currentTime = 0;
+
         eatSound.play();
 
     } else {
@@ -85,25 +143,32 @@ function update() {
         snake.pop();
     }
 
-    // Wall hit or self collision
+    // Collision
     if (
         head.x < 0 ||
         head.x >= numberOfCells ||
         head.y < 0 ||
         head.y >= numberOfCells ||
         snake.slice(1).some(
-            segment => segment.x === head.x && segment.y === head.y
+            segment =>
+                segment.x === head.x &&
+                segment.y === head.y
         )
     ) {
 
         wallSound.currentTime = 0;
+
         wallSound.play();
 
         clearInterval(gameInterval);
 
-        setTimeout(() => {
-            alert('Game Over!');
-        }, 100);
+        gameStarted = false;
+
+        replayBtn.style.display = "inline-block";
+
+        alert("Game Over!");
+
+        return;
     }
 
     draw();
@@ -121,8 +186,11 @@ function generateRandomPos() {
         };
 
     } while (
+        snake &&
         snake.some(
-            segment => segment.x === pos.x && segment.y === pos.y
+            segment =>
+                segment.x === pos.x &&
+                segment.y === pos.y
         )
     );
 
@@ -154,7 +222,3 @@ document.addEventListener('keydown', (e) => {
             break;
     }
 });
-
-draw();
-
-gameInterval = setInterval(update, 200);
