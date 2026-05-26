@@ -1,140 +1,174 @@
 # SnakeGame
 
-This project is a simple Snake Game built using Flask for the backend and JavaScript for the frontend. The game is deployed using Docker and can be build,tested and deployed using Jenkins Pipeline. 
+![GitHub](https://img.shields.io/badge/GitHub-Sumitkalamkar-black?style=flat&logo=github)
+![Language](https://img.shields.io/badge/Language-Python-blue?style=flat&logo=python)
+![Framework](https://img.shields.io/badge/Framework-Flask-lightgrey?style=flat&logo=flask)
+![License](https://img.shields.io/badge/License-MIT-green?style=flat)
+![Platform](https://img.shields.io/badge/Platform-Docker-blue?style=flat&logo=docker)
+![CI/CD](https://img.shields.io/badge/CI%2FCD-Jenkins-red?style=flat&logo=jenkins)
+
+A simple Snake Game built using **Flask** for the backend and **JavaScript** for the frontend. The game is containerized with Docker and supports automated CI/CD via a Jenkins Pipeline.
 
 ![Architecture Diagram](ArchitectureDiagram.png)
 
-### WebApp
+### Web App Preview
 ![Snake Game WebUI](webapp.png)
 
+---
+
+## Table of Contents
+
+- [Setup Instructions](#setup-instructions)
+- [Jenkins Pipeline](#jenkins-pipeline)
+- [Project Structure](#project-structure)
+- [Contact](#contact)
+
+---
 
 ## Setup Instructions
 
-1. **Fork & Clone the repository**
-    - Fork the repository  https://github.com/sudhanshuvlog/SnakeGame.git
-    - Once you have forked the repo on your github account, Clone the repo in your system
-        ```bash
-        git clone <your repo URL>
-        cd SnakeGame
-        ```
+### 1. Fork & Clone the Repository
 
-2. **Launch Server**
+- Fork this repository: [https://github.com/Sumitkalamkar/SnakeGame](https://github.com/Sumitkalamkar/SnakeGame)
+- Clone your fork locally:
 
-    - Launch an AWS EC2 Instance with `t2.medium` as Instance Type, and Give atleast 15GB of EBS Volume.
-    - In `Security Group` you can allow all the trafic.
-    - In your Ec2 Instance, Install docker
-        ```bash
-        yum install docker -y
-        systemctl start docker
-        ```
+```bash
+git clone https://github.com/Sumitkalamkar/SnakeGame.git
+cd SnakeGame
+```
 
-3. **Jenkins Setup**:
+### 2. Launch a Server (AWS EC2)
 
-    - Launch Jenkins Server:
+- Launch an AWS EC2 instance with the following configuration:
+  - **Instance Type:** `t2.medium`
+  - **EBS Volume:** At least 15 GB
+  - **Security Group:** Allow all traffic (or open ports 5000, 8080, 50000)
 
-        ```bash
-        docker run -p 8080:8080 -p 50000:50000 -dit --name jenkins --restart=on-failure -v jenkins_home:/var/jenkins_home jenkins/jenkins:lts-jdk21
-        ```
-    
-    -  Configure Jenkins Slave Node:
-        - Follow this doc to add a agent in Jenkins https://www.jenkins.io/doc/book/using/using-agents/
-        - On your Jenkins slave node, install JDK 17(You can make your base Ec2 Instance as slave node):
-        
-            ```bash
-            wget https://download.oracle.com/java/21/latest/jdk-21_linux-x64_bin.rpm
-            yum install jdk-21_linux-x64_bin.rpm -y
-            ```
+- Install and start Docker on your EC2 instance:
 
-        - Start the agent and join it to the Jenkins Master Node using the provided join command.
+```bash
+yum install docker -y
+systemctl start docker
+```
 
+### 3. Jenkins Setup
 
-4. **Continuous Integration & Deployment**
+**Start the Jenkins Server:**
 
-    - The `Jenkinsfile` is used to automate the process of testing, building, and deploying the Snake Game using Jenkins.
-    - Detailed overview of Jenkinsfile is given below
+```bash
+docker run -p 8080:8080 -p 50000:50000 -dit \
+  --name jenkins \
+  --restart=on-failure \
+  -v jenkins_home:/var/jenkins_home \
+  jenkins/jenkins:lts-jdk21
+```
 
-5. **Access the game:**
+**Configure a Jenkins Agent (Slave Node):**
 
-    - Open your web browser and navigate to http://< Ec2 Public IP >:5000 to play the Snake Game.
+- Follow the official guide to add an agent: [Using Jenkins Agents](https://www.jenkins.io/doc/book/using/using-agents/)
+- On your slave node, install JDK 21:
 
+```bash
+wget https://download.oracle.com/java/21/latest/jdk-21_linux-x64_bin.rpm
+yum install jdk-21_linux-x64_bin.rpm -y
+```
 
-### Jenkins Pipeline Explanation
+- Start the agent and connect it to the Jenkins master using the provided join command.
 
-    The Jenkinsfile is used to automate the process of testing, building, and deploying the Snake Game using Jenkins.
+### 4. Play the Game
 
-    - Jenkinsfile Stages
+Once deployed, open your browser and navigate to:
 
-        - Download the source code:
+```
+http://<EC2_PUBLIC_IP>:5000
+```
 
-            ```bash
-            stage('Download the source code') {
-                steps {
-                    git branch: 'main', url: 'https://github.com/sudhanshuvlog/SnakeGame.git'
-                    echo "Code downloaded successfully"
-                }
-            ```
+---
 
-        - Test:
+## Jenkins Pipeline
 
-        Installs Python and dependencies, then runs tests.
+The `Jenkinsfile` automates the full CI/CD workflow — testing, building, and deploying the Snake Game.
 
-            ```bash
-            stage('Test'){
-                steps {
-                    sh "yum install python3-pip-21.3.1-2.amzn2023.0.5.noarch -y"
-                    sh "pip install -r requirements.txt"
-                    sh "pytest"
-                    echo "Code has been tested successfully!"
-                }
-            }
-            ```
+### Dynamic Docker Worker Node
 
-        - Build Docker Image:
+This pipeline uses **dynamic worker nodes powered by Docker**. Instead of a permanent agent, whenever the pipeline is triggered, Jenkins automatically spins up a Docker container inside the master node to serve as the worker. Once the pipeline execution is complete, the container is destroyed automatically — keeping the environment clean and resource-efficient. This means every build runs in a fresh, isolated environment with no leftover state from previous runs.
 
-        Builds the Docker image for the application.
+### Pipeline Stages
 
-        ```bash
-        stage("Build Docker Image"){
-            steps {
-                sh "docker build -t gfgwebimg ."
-            }
-        }
-        ```
+#### Stage 1 — Download Source Code
 
-        - Deployment:
+```groovy
+stage('Download the source code') {
+    steps {
+        git branch: 'main', url: 'https://github.com/Sumitkalamkar/SnakeGame.git'
+        echo "Code downloaded successfully"
+    }
+}
+```
 
-        Deploys the Docker container.
+#### Stage 2 — Test
 
-            ```bash
-            stage("Deployment"){
-                steps {
-                    sh "docker rm -f webos || true"
-                    sh "docker run -dit --name webos -p 5000:5000 gfgwebimg"
-                }
-            }
-            ```
+Installs Python dependencies and runs unit tests with `pytest`.
 
-### Code Explanations
+```groovy
+stage('Test') {
+    steps {
+        sh "yum install python3-pip-21.3.1-2.amzn2023.0.5.noarch -y"
+        sh "pip install -r requirements.txt"
+        sh "pytest"
+        echo "Code has been tested successfully!"
+    }
+}
+```
 
-- app.py: The main Flask application file that sets up the web server and routes.
+#### Stage 3 — Build Docker Image
 
-- Dockerfile: Contains the instructions to create a Docker image for the Snake Game.
+```groovy
+stage("Build Docker Image") {
+    steps {
+        sh "docker build -t snakegameimg ."
+    }
+}
+```
 
-- game.js: The JavaScript file responsible for the game logic and rendering on the HTML canvas.
+#### Stage 4 — Deployment
 
-- index.html: The HTML file that serves as the frontend of the application, where the game is displayed.
+```groovy
+stage("Deployment") {
+    steps {
+        sh "docker rm -f snakegame || true"
+        sh "docker run -dit --name snakegame -p 5000:5000 snakegameimg"
+    }
+}
+```
 
-- Jenkinsfile: Script for Jenkins to automate testing, building, and deployment of the application.
+---
 
-- requirements.txt: Lists all the Python dependencies required for the project.
+## Project Structure
 
-- static/: Directory containing static files like JavaScript and CSS used in the project.
+| File/Directory | Description |
+|---|---|
+| `app.py` | Main Flask application — sets up the web server and routes |
+| `Dockerfile` | Instructions to build the Docker image |
+| `game.js` | Game logic and canvas rendering |
+| `index.html` | Frontend HTML — where the game is displayed |
+| `Jenkinsfile` | Jenkins CI/CD pipeline script |
+| `requirements.txt` | Python dependencies |
+| `static/` | Static assets (JavaScript, CSS) |
+| `test_app.py` | Unit tests for the Flask application |
 
-- test_app.py: Contains unit tests for the Flask application to ensure functionality.
+---
 
-- My Docker Image for this snake game is present here - https://hub.docker.com/r/jinny1/snakegame
+## Docker Image
 
-### Contact
+A pre-built Docker image is available on Docker Hub:
 
-    For any inquiries or issues, please contact [me](https://www.linkedin.com/in/sudhanshu--pandey/)
+[https://hub.docker.com/r/jinny1/snakegame](https://hub.docker.com/r/jinny1/snakegame)
 
+---
+
+## Contact
+
+For any inquiries or issues, feel free to reach out:
+
+- **GitHub:** [Sumitkalamkar](https://github.com/Sumitkalamkar)
